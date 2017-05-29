@@ -4,9 +4,8 @@ import os
 import docker
 from requests.exceptions import ReadTimeout
 
-from server.settings import ContainerConfig
-from server.utils.uuid import create_uuid
-
+from backend.core.settings import ContainerConfig
+from backend.core.utils.uuid import create_uuid
 
 # 保存待执行的源码文件:
 class CodeWriter(ContainerConfig):
