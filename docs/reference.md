@@ -17,4 +17,8 @@ pip install flask-restful
 ```
 
 
+## API 设计规范:
+
+- [跟着 Github 学习 Restful HTTP API 设计](http://cizixs.com/2016/12/12/restful-api-design-guide)
+
 
