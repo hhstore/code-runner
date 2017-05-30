@@ -43,7 +43,7 @@ class CodeWriter(ContainerConfig):
         file_path = os.path.join(self.volume_path, self.file_path)
 
         with open(file_path, mode="w", encoding="utf8") as f:
-            f.write(content)
+            f.write(content[:1024*64])   # 文件大小限定64k
 
     def save_cmd(self):
         """保存代码执行的 shell 命令
@@ -117,11 +117,10 @@ class ContainerWorker(ContainerConfig):
             self.client.kill(container=ctr)  # 超时, kill 掉
 
         ctr_logs = self.client.logs(container=ctr.get("Id"))
-        print(ctr_logs)
 
         self.client.stop(ctr)  # 退出容器
         self.client.remove_container(ctr, v=True, force=True)  # 清理容器
-
+        return ctr_logs[:1024*64]    # 截取日志长度,保留64k
 
 # 代码执行服务:
 class CodeRunner(object):
@@ -131,8 +130,29 @@ class CodeRunner(object):
         self.runner = ContainerWorker(self.cmd)
 
     def run(self):
-        return self.runner.run()
+        log = self.runner.run()
+        return self.parse(log)
 
+    def parse(self, logs):
+        sep = "=1=2=3=4=5=== I Am A Dividing Line ! ===5=4=3=2=1="
+        flag1 = "RESULT: "
+        flag2 = "STATUS_CODE: "
+        flag3 = "TIME_COST: "
+
+        if isinstance(logs, bytes):
+            logs = logs.decode()
+
+        values = logs.split(sep)
+        #print(values)
+        _, v_result, v_status, v_time = values
+
+        result = {
+            "result": v_result.strip().lstrip(flag1).strip(),
+            "status": v_status.strip().lstrip(flag2).strip(),
+            "time": v_time.strip().lstrip(flag3).strip()
+        }
+        print(result)
+        return result
 
 
 if __name__ == '__main__':
@@ -141,7 +161,8 @@ if __name__ == '__main__':
 
 import datetime
 import os
-print(os.getcwd())
+print("hello world!")
+#print(os.getcwd())
 print(datetime.datetime.now())
 
 
